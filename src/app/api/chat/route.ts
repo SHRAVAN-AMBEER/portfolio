@@ -55,10 +55,11 @@ export async function POST(req: Request) {
       messages,
     });
 
-    return result.toUIMessageStreamResponse();
-  } catch (error: any) {
+    return result.toTextStreamResponse();
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error in chat API route:", error);
-    return new Response(JSON.stringify({ error: error.message || String(error) }), {
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });

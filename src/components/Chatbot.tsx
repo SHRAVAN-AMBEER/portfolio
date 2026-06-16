@@ -1,24 +1,62 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
 import { useState, useRef, useEffect } from "react";
 import { MessageSquare, X, Send, Bot, User, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+type Message = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+};
+
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
-  const { messages, sendMessage, status } = useChat();
-  const isLoading = status === "streaming" || status === "submitted";
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
     
-    // Using sendMessage instead of append/handleSubmit for the newer SDK version
-    sendMessage({ text: input });
+    const userMessage: Message = { id: Date.now().toString(), role: "user", content: input };
+    setMessages(prev => [...prev, userMessage]);
     setInput("");
+    setIsLoading(true);
+
+    const botMessageId = (Date.now() + 1).toString();
+    setMessages(prev => [...prev, { id: botMessageId, role: "assistant", content: "" }]);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [...messages, userMessage] })
+      });
+
+      if (!response.body) throw new Error("No body");
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          setMessages(prev => prev.map(msg => 
+            msg.id === botMessageId ? { ...msg, content: msg.content + chunk } : msg
+          ));
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: "assistant", content: "Sorry, I encountered an error connecting to the server." }]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -92,8 +130,11 @@ export default function Chatbot() {
                           : 'bg-white/5 border border-white/10 text-foreground/90 rounded-tl-sm'
                       }`}
                     >
-                      {message.parts?.map((part, i) => (
-                        part.type === 'text' ? <span key={i}>{part.text}</span> : null
+                      {message.content.split('\n').map((line, i) => (
+                        <span key={i}>
+                          {line}
+                          <br />
+                        </span>
                       ))}
                     </div>
                   </div>
