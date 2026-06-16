@@ -50,15 +50,15 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     const result = streamText({
-      model: google('gemini-1.5-flash'),
+      model: google('gemini-3.5-flash'),
       system: SYSTEM_PROMPT,
       messages,
     });
 
     return result.toUIMessageStreamResponse();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in chat API route:", error);
-    return new Response(JSON.stringify({ error: "Failed to process chat request." }), {
+    return new Response(JSON.stringify({ error: error.message || String(error) }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
