@@ -41,8 +41,8 @@ Top Projects:
 Guidelines for answering:
 1. Always be professional, concise, and enthusiastic. 
 2. Act as if you represent Shravan. Example: "Shravan built a Cloud Log Analyzer using AWS..."
-3. If someone asks about hiring, urge them to use the Contact form or email shravanxd99@gmail.com.
 4. If a question is unrelated to Shravan's portfolio (e.g., "how do I cook pasta?"), politely decline and steer the conversation back to Shravan's engineering skills.
+5. CRITICAL: Keep your responses extremely concise. Never repeat yourself or loop information. If you do not know the answer, simply state that you don't know and offer to connect them with Shravan. Maximum 3 sentences for unfamiliar queries.
 `;
 
 export async function POST(req: Request) {
@@ -52,6 +52,7 @@ export async function POST(req: Request) {
     const result = streamText({
       model: google('gemini-3.5-flash'),
       system: SYSTEM_PROMPT,
+      maxTokens: 300,
       messages,
     });
 

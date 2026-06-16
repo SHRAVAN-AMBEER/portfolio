@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, X, Send, Bot, User, Loader2 } from "lucide-react";
+import { MessageSquare, X, Send, Bot, User, Loader2, Square } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Message = {
@@ -16,6 +16,15 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const stopGenerating = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,11 +38,14 @@ export default function Chatbot() {
     const botMessageId = (Date.now() + 1).toString();
     setMessages(prev => [...prev, { id: botMessageId, role: "assistant", content: "" }]);
 
+    abortControllerRef.current = new AbortController();
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMessage] })
+        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        signal: abortControllerRef.current.signal
       });
 
       if (!response.body) throw new Error("No body");
@@ -51,11 +63,16 @@ export default function Chatbot() {
           ));
         }
       }
-    } catch (error) {
-      console.error(error);
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: "assistant", content: "Sorry, I encountered an error connecting to the server." }]);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.log('Response generation stopped by user.');
+      } else {
+        console.error(error);
+        setMessages(prev => [...prev, { id: Date.now().toString(), role: "assistant", content: "Sorry, I encountered an error connecting to the server." }]);
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -159,19 +176,31 @@ export default function Chatbot() {
 
             {/* Input Area */}
             <div className="p-4 border-t border-primary/20 bg-black">
-              <form onSubmit={handleSubmit} className="flex space-x-2 relative">
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (isLoading) {
+                    stopGenerating();
+                  } else {
+                    handleSubmit(e);
+                  }
+                }} 
+                className="flex space-x-2 relative"
+              >
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask a question..."
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                  disabled={isLoading}
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50"
                 />
                 <button 
                   type="submit" 
-                  disabled={isLoading || !input.trim()}
+                  disabled={!isLoading && !input.trim()}
                   className="p-3 rounded-xl bg-primary text-black hover:bg-[#00E5FF] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-[0_0_15px_rgba(0,255,102,0.3)] hover:shadow-[0_0_20px_rgba(0,229,255,0.5)]"
+                  title={isLoading ? "Stop generating" : "Send message"}
                 >
-                  <Send size={18} />
+                  {isLoading ? <Square size={18} fill="currentColor" /> : <Send size={18} />}
                 </button>
               </form>
             </div>
