@@ -8,10 +8,10 @@ import { useState } from "react";
 export default function ContactSection() {
   const [result, setResult] = useState("");
 
-  const onSubmit = async (event: any) => {
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setResult("Sending...");
-    const formData = new FormData(event.target);
+    const formData = new FormData(event.currentTarget);
 
     // Replace with your Web3Forms Access Key
     formData.append("access_key", "YOUR_WEB3FORMS_ACCESS_KEY_HERE");
@@ -26,12 +26,12 @@ export default function ContactSection() {
 
       if (data.success) {
         setResult("Message sent successfully!");
-        event.target.reset();
+        event.currentTarget.reset();
       } else {
         console.log("Error", data);
         setResult(data.message);
       }
-    } catch (error) {
+    } catch {
       setResult("An error occurred. Please try again.");
     }
   };
@@ -53,7 +53,7 @@ export default function ContactSection() {
           </h2>
           <div className="w-24 h-1 bg-primary rounded-full shadow-[0_0_15px_rgba(0,255,102,0.5)] mx-auto"></div>
           <p className="mt-6 text-foreground/70 max-w-xl mx-auto font-light">
-            I'm currently looking for new opportunities. Whether you have a question, a project idea, or just want to say hi, my inbox is always open!
+            I&apos;m currently looking for new opportunities. Whether you have a question, a project idea, or just want to say hi, my inbox is always open!
           </p>
         </motion.div>
 

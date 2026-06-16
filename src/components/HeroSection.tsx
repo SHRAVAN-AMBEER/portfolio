@@ -63,7 +63,7 @@ export default function HeroSection() {
               className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-full neon-border bg-black/40 backdrop-blur-md mb-8"
             >
               <Terminal size={18} className="text-primary" />
-              <span className="text-sm font-medium tracking-wide text-white">System.out.println("Hello, World!");</span>
+              <span className="text-sm font-medium tracking-wide text-white">System.out.println(&quot;Hello, World!&quot;);</span>
             </motion.div>
           </Tilt>
 
@@ -73,7 +73,7 @@ export default function HeroSection() {
             transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
             className="text-5xl md:text-7xl lg:text-8xl font-heading font-bold tracking-tighter mb-6 text-white drop-shadow-lg"
           >
-            I'm <span className="text-gradient">Ambeer</span> <br className="hidden md:block" />
+            I&apos;m <span className="text-gradient">Ambeer</span> <br className="hidden md:block" />
             <span>Shravan Kumar</span>
           </motion.h1>
 

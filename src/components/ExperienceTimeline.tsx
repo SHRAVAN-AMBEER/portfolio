@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Award, Briefcase, Calendar, Code, Laptop, ExternalLink, ShieldCheck } from "lucide-react";
+import { Briefcase, Calendar, Code, Laptop, ExternalLink, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import Tilt from "react-parallax-tilt";
 

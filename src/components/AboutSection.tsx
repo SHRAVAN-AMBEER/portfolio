@@ -60,7 +60,7 @@ export default function AboutSection() {
                   I am <strong className="text-primary font-semibold">Ambeer Shravan Kumar</strong>, an undergraduate Information Technology student passionate about AI/ML, software engineering, and building impactful products.
                 </p>
                 <p className="text-foreground/80 text-lg leading-relaxed font-light">
-                  I enjoy solving challenging problems, developing intelligent systems, and creating scalable applications. Whether it's architecting a serverless AWS pipeline or training a machine learning model for anomaly detection, I thrive at the intersection of data and software.
+                  I enjoy solving challenging problems, developing intelligent systems, and creating scalable applications. Whether it&apos;s architecting a serverless AWS pipeline or training a machine learning model for anomaly detection, I thrive at the intersection of data and software.
                 </p>
               </motion.div>
             </Tilt>

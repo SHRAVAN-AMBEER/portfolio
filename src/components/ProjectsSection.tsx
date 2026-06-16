@@ -15,7 +15,7 @@ const PROJECTS = [
       "Integrated Elasticsearch/OpenSearch to enable near real-time querying across large log datasets with sub-second search performance."
     ],
     tech: ["AWS Lambda", "OpenSearch", "Python", "Isolation Forest", "AWS S3"],
-    github: "https://github.com/SHRAVAN-AMBEER",
+    github: "https://github.com/SHRAVAN-AMBEER/Cloud_Log_Analyzer.git",
     color: "neon-border"
   },
   {
@@ -26,7 +26,7 @@ const PROJECTS = [
       "Configured Nginx as a reverse proxy and web server, ensuring reliable application delivery and simplified production deployment."
     ],
     tech: ["GitHub Actions", "AWS EC2", "Nginx", "Docker", "SSH"],
-    github: "https://github.com/SHRAVAN-AMBEER",
+    github: "https://github.com/SHRAVAN-AMBEER/blog-auto-deploy.git",
     color: "neon-border-secondary"
   },
   {
@@ -37,7 +37,7 @@ const PROJECTS = [
       "Built a robust REST API backend with Flask and MongoDB to securely manage user data and market metrics."
     ],
     tech: ["React.js", "Flask", "MongoDB", "Matplotlib", "AI Analytics"],
-    github: "https://github.com/SHRAVAN-AMBEER",
+    github: "https://github.com/SHRAVAN-AMBEER/cryptose.git",
     color: "neon-border"
   },
   {
@@ -48,7 +48,7 @@ const PROJECTS = [
       "Created interactive dashboards to present complex match data in an easily digestible visual format."
     ],
     tech: ["Python", "Pandas", "Scikit-learn", "DataViz"],
-    github: "https://github.com/SHRAVAN-AMBEER",
+    github: "https://github.com/SHRAVAN-AMBEER/football-analytics.git",
     color: "neon-border-secondary"
   },
   {
@@ -59,7 +59,7 @@ const PROJECTS = [
       "Ensured safe concurrent seat booking through transactional concurrency control via JDBC, completely preventing double-booking race conditions."
     ],
     tech: ["SQL", "JDBC", "Java", "HTML/CSS"],
-    github: "https://github.com/SHRAVAN-AMBEER",
+    github: "https://github.com/SHRAVAN-AMBEER/Online-movie-ticket-booking.git",
     color: "neon-border"
   },
   {
@@ -70,7 +70,7 @@ const PROJECTS = [
       "Analyzed attack vectors to improve defensive strategies and understand emerging cyber threats."
     ],
     tech: ["Python", "Network Security", "Threat Analysis"],
-    github: "https://github.com/SHRAVAN-AMBEER",
+    github: "https://github.com/SHRAVAN-AMBEER/cyber-physical-honeypot.git",
     color: "neon-border-secondary"
   }
 ];

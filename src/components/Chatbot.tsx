@@ -69,7 +69,7 @@ export default function Chatbot() {
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-3 opacity-60">
                   <Bot size={40} className="text-primary" />
                   <p className="text-sm font-light">
-                    Hi! I'm Ambeer's AI assistant. <br /> Ask me about his projects, skills, or experience!
+                    Hi! I&apos;m Ambeer&apos;s AI assistant. <br /> Ask me about his projects, skills, or experience!
                   </p>
                 </div>
               )}
