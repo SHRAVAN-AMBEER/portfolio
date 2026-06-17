@@ -1,4 +1,5 @@
 import { google } from '@ai-sdk/google';
+import { xai } from '@ai-sdk/xai';
 import { streamText } from 'ai';
 
 const SYSTEM_PROMPT = `
@@ -49,8 +50,13 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
+    // Dynamically use xAI Grok if the API key is configured, otherwise fallback to Gemini
+    const model = process.env.XAI_API_KEY 
+      ? xai('grok-2') 
+      : google('gemini-3.5-flash');
+
     const result = streamText({
-      model: google('gemini-3.5-flash'),
+      model,
       system: SYSTEM_PROMPT,
       maxOutputTokens: 300,
       messages,
