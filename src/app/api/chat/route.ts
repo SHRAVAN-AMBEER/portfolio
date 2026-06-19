@@ -50,10 +50,29 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    // Dynamically use GroqCloud (Llama 3) if the API key is configured, otherwise fallback to Gemini
-    const model = process.env.GROQ_API_KEY 
-      ? groq('llama3-8b-8192') 
-      : google('gemini-3.5-flash');
+    // Custom fallback model: Try Groq first, if it throws an error (e.g., rate limit, downtime), fallback to Gemini seamlessly.
+    const groqModel = groq('llama3-8b-8192');
+    const geminiModel = google('gemini-3.5-flash');
+
+    const model = process.env.GROQ_API_KEY ? {
+      ...groqModel,
+      doStream: async (options: Parameters<typeof groqModel.doStream>[0]) => {
+        try {
+          return await groqModel.doStream(options);
+        } catch (error) {
+          console.warn("Groq failed, seamlessly falling back to Gemini:", error);
+          return geminiModel.doStream(options);
+        }
+      },
+      doGenerate: async (options: Parameters<typeof groqModel.doGenerate>[0]) => {
+        try {
+          return await groqModel.doGenerate(options);
+        } catch (error) {
+          console.warn("Groq failed, seamlessly falling back to Gemini:", error);
+          return geminiModel.doGenerate(options);
+        }
+      }
+    } : geminiModel;
 
     const result = streamText({
       model,
