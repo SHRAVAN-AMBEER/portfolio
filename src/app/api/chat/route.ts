@@ -1,5 +1,5 @@
 import { google } from '@ai-sdk/google';
-import { xai } from '@ai-sdk/xai';
+import { groq } from '@ai-sdk/groq';
 import { streamText } from 'ai';
 
 const SYSTEM_PROMPT = `
@@ -50,9 +50,9 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    // Dynamically use xAI Grok if the API key is configured, otherwise fallback to Gemini
-    const model = process.env.XAI_API_KEY 
-      ? xai('grok-2') 
+    // Dynamically use GroqCloud (Llama 3) if the API key is configured, otherwise fallback to Gemini
+    const model = process.env.GROQ_API_KEY 
+      ? groq('llama3-8b-8192') 
       : google('gemini-3.5-flash');
 
     const result = streamText({
