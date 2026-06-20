@@ -1,4 +1,3 @@
-import { pipeline, env } from '@xenova/transformers';
 import { Index } from '@upstash/vector';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -120,42 +119,60 @@ const knowledgeBase = [
   }
 ];
 
-async function generateAndUploadEmbeddings() {
-  console.log("Initializing local Transformers.js Embedding Model (Xenova/all-MiniLM-L6-v2)...");
-  
-  const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
-    progress_callback: x => console.log(x.status, x.name ? x.name : '')
+async function generateGoogleEmbedding(text) {
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: "models/gemini-embedding-2",
+      outputDimensionality: 768, // CRITICAL: Force 768 dims for Upstash
+      content: { parts: [{ text: text }] }
+    })
   });
+  const data = await response.json();
+  if (!data.embedding || !data.embedding.values) {
+    throw new Error("Failed to get valid embedding from Google API");
+  }
+  return data.embedding.values;
+}
+
+async function generateAndUploadEmbeddings() {
+  console.log("Initializing ultra-fast Google REST API Embeddings (gemini-embedding-2 @ 768d)...");
   
-  const texts = knowledgeBase.map(item => `Question: ${item.question}\nAnswer: ${item.answer}`);
-  console.log(`Generating embeddings for ${texts.length} items...`);
+  const upstashVectors = [];
   
-  try {
-    const output = await extractor(texts, { pooling: 'mean', normalize: true });
-    // @ts-ignore
-    const rawEmbeddings = output.tolist();
+  console.log(`Generating embeddings for ${knowledgeBase.length} items...`);
+  
+  for (let i = 0; i < knowledgeBase.length; i++) {
+    const item = knowledgeBase[i];
+    const text = `Question: ${item.question}\nAnswer: ${item.answer}`;
     
-    const upstashVectors = knowledgeBase.map((item, index) => {
-      // Zero-pad the 384-dimensional vector to 768 dimensions to fit Upstash
-      // This is mathematically perfect for Cosine Similarity as zeros don't change the magnitude or dot product!
-      const vector = [...rawEmbeddings[index], ...Array(384).fill(0)];
-      
-      return {
+    try {
+      const vector = await generateGoogleEmbedding(text);
+      upstashVectors.push({
         id: item.id,
         vector: vector,
         metadata: {
           question: item.question,
           answer: item.answer
         }
-      };
-    });
-    
-    console.log(`Uploading ${upstashVectors.length} zero-padded vectors to Upstash...`);
+      });
+      console.log(`[${i+1}/${knowledgeBase.length}] Generated embedding for: ${item.id}`);
+      
+      // Sleep slightly to respect Google Free Tier rate limits
+      await new Promise(r => setTimeout(r, 1000));
+    } catch (err) {
+      console.error(`Error generating embedding for ${item.id}:`, err);
+    }
+  }
+  
+  try {
+    console.log(`Uploading ${upstashVectors.length} vectors to Upstash...`);
     await index.upsert(upstashVectors);
-    console.log("✅ Successfully generated local embeddings and seeded Upstash Vector Database!");
-    
+    console.log("✅ Successfully seeded Upstash Vector Database with Google Embeddings!");
   } catch (err) {
-    console.error("Error generating local embeddings:", err);
+    console.error("Error uploading to Upstash:", err);
   }
 }
 

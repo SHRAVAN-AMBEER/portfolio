@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Support for Transformers.js in Vercel API routes
-  serverExternalPackages: ["onnxruntime-node"],
+  // Config options can be placed here
 };
 
 export default nextConfig;

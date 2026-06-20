@@ -1,15 +1,6 @@
-import { pipeline, env } from '@xenova/transformers';
 import { Index } from '@upstash/vector';
 import { groq } from '@ai-sdk/groq';
 import { streamText } from 'ai';
-
-// Force Transformers.js to download models from HuggingFace Hub since serverless doesn't have local cache
-env.allowLocalModels = false;
-env.useBrowserCache = false;
-
-// CRITICAL FOR VERCEL: The filesystem is read-only except for /tmp.
-// We must point the Transformers.js cache to /tmp or it will crash with a 500 error!
-env.cacheDir = '/tmp/.transformers_cache';
 
 // Initialize Upstash Vector client
 const index = new Index({
@@ -17,23 +8,36 @@ const index = new Index({
   token: process.env.UPSTASH_VECTOR_REST_TOKEN,
 });
 
+async function getGoogleEmbedding(text: string): Promise<number[]> {
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey) throw new Error("Missing GOOGLE_GENERATIVE_AI_API_KEY");
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: "models/gemini-embedding-2",
+      outputDimensionality: 768, // Force 768 dimensions for Upstash Vector matching
+      content: { parts: [{ text: text }] }
+    })
+  });
+
+  const data = await response.json();
+  if (!data.embedding || !data.embedding.values) {
+    throw new Error("Failed to generate embedding from Google REST API");
+  }
+  return data.embedding.values;
+}
+
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
     const lastMessage = messages[messages.length - 1].content;
 
-    // 1. Initialize the embedding model on the server
-    const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    // 1. Generate extremely fast 768-dim embedding using Google REST API via native fetch
+    const queryVector = await getGoogleEmbedding(lastMessage);
 
-    // 2. Embed the user's query
-    const output = await extractor(lastMessage, { pooling: 'mean', normalize: true });
-    // @ts-ignore
-    const rawEmbedding = output.tolist()[0];
-    
-    // 3. Zero-pad the embedding to 768 dimensions to match the Upstash database
-    const queryVector = [...rawEmbedding, ...Array(384).fill(0)];
-
-    // 4. Perform Vector Search against Upstash
+    // 2. Perform Vector Search against Upstash
     const results = await index.query({
       vector: queryVector,
       topK: 3,
@@ -41,10 +45,12 @@ export async function POST(req: Request) {
     });
 
     // Extract the most relevant context chunks
-    const topContexts = results.filter(r => r.score > 0.3);
+    // Since we are using ultra-high-quality Google embeddings, similarity scores will be higher.
+    // Let's use 0.5 as a conservative cutoff for relevance.
+    const topContexts = results.filter(r => r.score > 0.5);
     const contextString = topContexts.map(r => `- ${r.metadata?.answer}`).join('\n');
 
-    // 5. Generate response using Groq Llama 3 with the retrieved context
+    // 3. Generate response using Groq Llama 3 with the retrieved context
     const SYSTEM_PROMPT = `
 You are the official AI Assistant for Ambeer Shravan Kumar's personal portfolio. 
 Use the following retrieved facts about Shravan to answer the user's question perfectly.
