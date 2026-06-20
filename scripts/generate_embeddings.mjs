@@ -36,7 +36,7 @@ const knowledgeBase = [
   {
     id: "kb-5",
     question: "Do you have any experience with Big Data, Cloud, and DevOps?",
-    answer: "Yes! I work with Apache Kafka, Apache Spark, Hive, Pig, and HDFS for Big Data. I deploy and manage infrastructure using AWS, Docker, GitHub Actions CI/CD pipelines, Nginx, and SSH."
+    answer: "Yes! I work extensively with Big Data technologies like Apache Kafka, Apache Spark, Hive, Pig, and HDFS. I deploy and manage infrastructure using AWS (EC2, S3, Lambda), Docker, GitHub Actions CI/CD pipelines, Nginx, and SSH."
   },
   {
     id: "kb-6",
@@ -46,17 +46,17 @@ const knowledgeBase = [
   {
     id: "kb-7",
     question: "Tell me about your Personal Blog CI/CD Pipeline.",
-    answer: "I developed a 100% automated deployment pipeline using GitHub Actions, AWS EC2, Nginx, and SSH. Whenever I push code, the deployment is completed in under 30 seconds with zero downtime."
+    answer: "I developed a 100% automated deployment pipeline using GitHub Actions, AWS EC2, Nginx, Docker, and SSH. Whenever I push code, the deployment is completed in under 30 seconds with zero downtime."
   },
   {
     id: "kb-8",
     question: "What is CRYPTOSE?",
-    answer: "CRYPTOSE is an AI-powered crypto analytics platform I built using React, Flask, MongoDB, and Matplotlib. It features advanced, role-based dashboards for analyzing cryptocurrency trends."
+    answer: "CRYPTOSE is an AI-powered cryptocurrency analytics platform I built using React.js, Flask, MongoDB, and Matplotlib. It features advanced, role-based dashboards for analyzing cryptocurrency trends in real time."
   },
   {
     id: "kb-9",
     question: "Tell me about your Online Movie Ticket Booking System.",
-    answer: "I engineered a backend system using SQL, JDBC, and Java that ensures highly safe concurrent seat booking to entirely prevent race conditions and double-booking during peak traffic."
+    answer: "I engineered a backend system using SQL, JDBC, Java, and HTML/CSS that ensures highly safe concurrent seat booking to entirely prevent race conditions and double-booking during peak traffic using transactional concurrency control."
   },
   {
     id: "kb-10",
@@ -71,7 +71,7 @@ const knowledgeBase = [
   {
     id: "kb-12",
     question: "What are your greatest strengths?",
-    answer: "My greatest strengths are my adaptability to new technologies, my strong foundation in both frontend design and backend systems, and my problem-solving mindset when it comes to scalable cloud architectures."
+    answer: "My greatest strengths are my adaptability to new technologies, my strong foundation in both frontend design and backend systems, and my problem-solving mindset when it comes to scalable cloud architectures and big data."
   },
   {
     id: "kb-13",
@@ -81,7 +81,7 @@ const knowledgeBase = [
   {
     id: "kb-14",
     question: "Are you looking for an internship or full-time role?",
-    answer: "I am actively seeking internship opportunities in Software Engineering, AI/ML, and Cloud Architecture where I can contribute my skills and learn from experienced engineers."
+    answer: "I am actively seeking internship opportunities in Software Engineering, AI/ML, Big Data, and Cloud Architecture where I can contribute my skills and learn from experienced engineers."
   },
   {
     id: "kb-15",
@@ -92,6 +92,31 @@ const knowledgeBase = [
     id: "kb-16",
     question: "What is your favorite tech stack to build with?",
     answer: "I love building full-stack web applications using Next.js/React on the frontend and Node.js or Flask on the backend, integrated with MongoDB or PostgreSQL databases, and deployed seamlessly on AWS or Vercel."
+  },
+  {
+    id: "kb-17",
+    question: "Tell me about Tactical IQ. What tech stack did you use to build it?",
+    answer: "Tactical IQ is a Big Data based project. I built it specifically utilizing powerful Big Data streaming and processing tools like Apache Spark and Apache Kafka, completely bypassing traditional web frameworks. It handles massive data pipelines."
+  },
+  {
+    id: "kb-18",
+    question: "Tell me about your Football Analytics Platform.",
+    answer: "I developed a comprehensive data visualization and analysis tool for tracking football match statistics and trends. I leveraged Python, Pandas, and Scikit-learn to analyze player performance metrics and created interactive DataViz dashboards to present the complex data."
+  },
+  {
+    id: "kb-19",
+    question: "Tell me about your Cyber Physical Honeypot project.",
+    answer: "I conducted security research by simulating vulnerable physical systems to trap and analyze malicious network actors. I engineered custom network listeners using Python for Threat Analysis, logging unauthorized access attempts and payload signatures to improve network security."
+  },
+  {
+    id: "kb-20",
+    question: "Do you do competitive programming?",
+    answer: "Yes, I am actively engaged in competitive coding. I have achieved a 4-Star Python Programmer rank on HackerRank and frequently solve algorithmic problems on LeetCode."
+  },
+  {
+    id: "kb-21",
+    question: "What extracurricular activities do you participate in?",
+    answer: "I represented the CBIT Football Team at the National-Level Inter-Engineering College Sports Fest (VJIT Sports Fest)."
   }
 ];
 
