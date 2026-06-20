@@ -15,55 +15,14 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingStatus, setLoadingStatus] = useState("Thinking...");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  const workerRef = useRef<Worker | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      workerRef.current = new Worker(new URL('../lib/worker.ts', import.meta.url), { type: 'module' });
-
-      workerRef.current.onmessage = (e) => {
-        const data = e.data;
-        
-        if (data.status === 'init' || data.status === 'download' || data.status === 'progress') {
-          setLoadingStatus(`Loading AI Model... ${data.progress ? Math.round(data.progress) + '%' : ''}`);
-        } else if (data.status === 'ready') {
-          setLoadingStatus("Thinking...");
-        } else if (data.status === 'complete') {
-          setMessages(prev => {
-            const newMessages = [...prev];
-            const lastMsg = newMessages[newMessages.length - 1];
-            if (lastMsg && lastMsg.role === 'assistant') {
-               lastMsg.content = data.result;
-            }
-            return newMessages;
-          });
-          setIsLoading(false);
-          setLoadingStatus("Thinking...");
-        } else if (data.status === 'error') {
-          setMessages(prev => {
-            const newMessages = [...prev];
-            const lastMsg = newMessages[newMessages.length - 1];
-            if (lastMsg && lastMsg.role === 'assistant') {
-               lastMsg.content = "Sorry, my local brain encountered an error!";
-            }
-            return newMessages;
-          });
-          console.error(data.error);
-          setIsLoading(false);
-          setLoadingStatus("Thinking...");
-        }
-      };
-    }
-
-    return () => {
-      workerRef.current?.terminate();
-    };
-  }, []);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const stopGenerating = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     setIsLoading(false);
   };
 
@@ -71,22 +30,55 @@ export default function Chatbot() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
     
-    const userText = input;
-    const userMessage: Message = { id: Date.now().toString(), role: "user", content: userText };
+    const userMessage: Message = { id: Date.now().toString(), role: "user", content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
-    setLoadingStatus("Thinking...");
 
     const botMessageId = (Date.now() + 1).toString();
     setMessages(prev => [...prev, { id: botMessageId, role: "assistant", content: "" }]);
 
-    workerRef.current?.postMessage({ text: userText });
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        signal: abortControllerRef.current.signal
+      });
+
+      if (!response.body) throw new Error("No body");
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          setMessages(prev => prev.map(msg => 
+            msg.id === botMessageId ? { ...msg, content: msg.content + chunk } : msg
+          ));
+        }
+      }
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.log('Response generation stopped by user.');
+      } else {
+        console.error(error);
+        setMessages(prev => [...prev, { id: Date.now().toString(), role: "assistant", content: "Sorry, I encountered an error connecting to the server." }]);
+      }
+    } finally {
+      setIsLoading(false);
+      abortControllerRef.current = null;
+    }
   };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading, loadingStatus]);
+  }, [messages, isLoading]);
 
   return (
     <>
@@ -170,7 +162,7 @@ export default function Chatbot() {
                     </div>
                     <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-foreground/90 rounded-tl-sm flex items-center">
                       <Loader2 size={16} className="animate-spin text-primary" />
-                      <span className="ml-2 text-xs">{loadingStatus}</span>
+                      <span className="ml-2 text-xs">Generating response...</span>
                     </div>
                   </div>
                 </div>

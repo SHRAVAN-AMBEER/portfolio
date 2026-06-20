@@ -1,9 +1,11 @@
-export type QA_Pair = {
-  question: string;
-  answer: string;
-};
+import { pipeline, env } from '@xenova/transformers';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-export const knowledgeBase: QA_Pair[] = [
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const knowledgeBase = [
   {
     question: "Who are you? What is your name and background?",
     answer: "Hi! I am Ambeer Shravan Kumar, an AI/ML Engineer, Full Stack Builder, Software Developer, DevOps Engineer, and Cloud Architect based in Hyderabad, India."
@@ -69,3 +71,34 @@ export const knowledgeBase: QA_Pair[] = [
     answer: "I love building full-stack web applications using Next.js/React on the frontend and Node.js or Flask on the backend, integrated with MongoDB or PostgreSQL databases, and deployed seamlessly on AWS or Vercel."
   }
 ];
+
+async function generateEmbeddings() {
+  console.log("Initializing local Transformers.js Embedding Model (Xenova/all-MiniLM-L6-v2)...");
+  
+  const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
+    progress_callback: x => console.log(x.status, x.name ? x.name : '')
+  });
+  
+  const texts = knowledgeBase.map(item => `Question: ${item.question}\nAnswer: ${item.answer}`);
+  console.log(`Generating embeddings for ${texts.length} items...`);
+  
+  try {
+    const output = await extractor(texts, { pooling: 'mean', normalize: true });
+    // @ts-ignore
+    const embeddings = output.tolist();
+    
+    const vectorStore = knowledgeBase.map((item, index) => ({
+      ...item,
+      embedding: embeddings[index]
+    }));
+    
+    const outputPath = path.join(__dirname, '../src/lib/vector_store.json');
+    fs.writeFileSync(outputPath, JSON.stringify(vectorStore, null, 2));
+    
+    console.log(`✅ Successfully generated local embeddings and saved to ${outputPath}`);
+  } catch (err) {
+    console.error("Error generating local embeddings:", err);
+  }
+}
+
+generateEmbeddings();
