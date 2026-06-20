@@ -2,12 +2,6 @@ import { Index } from '@upstash/vector';
 import { groq } from '@ai-sdk/groq';
 import { streamText } from 'ai';
 
-// Initialize Upstash Vector client
-const index = new Index({
-  url: process.env.UPSTASH_VECTOR_REST_URL,
-  token: process.env.UPSTASH_VECTOR_REST_TOKEN,
-});
-
 async function getGoogleEmbedding(text: string): Promise<number[]> {
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) throw new Error("Missing GOOGLE_GENERATIVE_AI_API_KEY");
@@ -31,6 +25,13 @@ async function getGoogleEmbedding(text: string): Promise<number[]> {
 
 export async function POST(req: Request) {
   try {
+    // Initialize Upstash Vector client INSIDE the request handler
+    // This prevents Vercel from crashing with a 500 HTML error if env variables are missing!
+    const index = new Index({
+      url: process.env.UPSTASH_VECTOR_REST_URL,
+      token: process.env.UPSTASH_VECTOR_REST_TOKEN,
+    });
+
     const { messages } = await req.json();
     const lastMessage = messages[messages.length - 1].content;
 
