@@ -5,6 +5,11 @@ import { streamText } from 'ai';
 
 // Force Transformers.js to download models from HuggingFace Hub since serverless doesn't have local cache
 env.allowLocalModels = false;
+env.useBrowserCache = false;
+
+// CRITICAL FOR VERCEL: The filesystem is read-only except for /tmp.
+// We must point the Transformers.js cache to /tmp or it will crash with a 500 error!
+env.cacheDir = '/tmp/.transformers_cache';
 
 // Initialize Upstash Vector client
 const index = new Index({
